@@ -28,12 +28,16 @@ jobs:
         include:
           - goos: linux
             goarch: amd64
+            suffix: "-linux"
           - goos: windows
             goarch: amd64
+            suffix: "-windows.exe"
           - goos: darwin
             goarch: amd64
+            suffix: "-darwin-amd64"
           - goos: darwin
             goarch: arm64
+            suffix: "-darwin-arm64"
     steps:
       - uses: actions/checkout@v4
 
@@ -44,8 +48,9 @@ jobs:
       # CGO_ENABLED=0: the exit-node/client binary only needs cgo for the
       # Android cross-build (via build_android.sh + the NDK toolchain), not
       # for these desktop/server targets.
-      - env:
+      - name: Build optimized binary
+        env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: 0
-        run: go build ./...
+        run: go build -ldflags="-s -w" -trimpath -o openflux${{ matrix.suffix }} .
